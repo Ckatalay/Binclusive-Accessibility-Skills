@@ -1,6 +1,6 @@
 ---
 name: audit-accessibility
-description: Audit React, Next.js, ASP.NET, ASPX/Web Forms, SwiftUI, or UIKit accessibility from a prior Binclusive project map. Use when the user says /auditaccessibility, audit accessibility, run accessibility audit, accessibility test, iOS accessibility audit, SwiftUI accessibility audit, UIKit accessibility audit, "binclusive projemi test et", "erişilebilirlik testi yap", "erişilebilirlik todo çıkar", "accessibility todo çıkar", or wants an accessibility TODO report from mapped routes, views, screens, components, controls, or paths.
+description: Audit React, Next.js, ASP.NET, ASPX/Web Forms, SwiftUI, or UIKit accessibility from a prior Binclusive project map. Use when the user says /auditaccessibility, audit accessibility, run accessibility audit, accessibility test, iOS accessibility audit, SwiftUI accessibility audit, UIKit accessibility audit, "binclusive projemi test et", "erişilebilirlik testi yap", "erişilebilirlik todo çıkar", "accessibility todo çıkar", or wants an accessibility TODO report from mapped routes, views, screens, components, controls, or paths. Also use to audit a single target only, e.g. "/auditaccessibility LoginButton", "audit only the X component", "sadece X componentini test et", or when a component/screen/folder name is passed as an argument — narrow the audit to that target from the existing map.
 ---
 
 # Audit Accessibility
@@ -26,8 +26,18 @@ Audit a previously mapped React/Next.js, ASP.NET/ASPX, or iOS SwiftUI/UIKit scop
      - `references/ios-swift.md`
      - `references/patterns/ios-swift-patterns.md` when available
 6. For mixed-platform maps, keep findings grouped by platform/surface and do not apply web-only rules to native iOS UI or iOS-only rules to web UI.
-7. Audit only the scope listed in the map, unless the user explicitly expands scope.
+7. Determine focus scope before auditing (see "Focus Scope" below).
 8. Write `Binclusive-auditing/accessibility-todo.md` and also archive a dated copy: `accessibility-todo_<YYYY-MM-DD>.md`.
+
+## Focus Scope
+
+The map sets the outer boundary; within it the audit can run over everything mapped or narrow to one target.
+
+1. **Use a named target when given.** If the user passed a component, screen/page, control, or folder path — as a `/auditaccessibility <target>` argument or in their request (e.g. "audit only the LoginButton") — audit only that target plus the usages the map records for it.
+2. **Otherwise ask once:** "Audit the whole mapped scope, or narrow to a specific component, screen/page, or folder path?" Default to the whole mapped scope if the user does not specify.
+3. **Resolve the target against the map. Do not invent it.** If the named target is not in the selected map, list the closest mapped entries and ask the user to pick one, or to run `map-project` for that target first. Never silently fall back to auditing the whole project when a narrow target was requested.
+4. **Narrowing is always allowed; expanding is not.** You may scope down to any subset of the mapped areas freely. Only audit beyond the map with explicit user approval.
+5. **Record it.** Put the exact focus scope in the TODO header `Scope audited` field, and note when it was narrowed from a broader map (e.g. `LoginButton (narrowed from full project map)`). Keep stable `TASK-00x` ids scoped to this run.
 
 ## Required Output
 
