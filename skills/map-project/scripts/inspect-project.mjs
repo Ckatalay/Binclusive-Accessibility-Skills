@@ -233,6 +233,107 @@ function detectWeb(files, pkg) {
   };
 }
 
+function detectReactNative(files, pkg) {
+  const deps = depsOf(pkg);
+  const fileSet = new Set(files.map((file) => rel(file)));
+  const jsFiles = files.filter((file) => /\.(js|jsx|ts|tsx)$/.test(file));
+  const sample = jsFiles
+    .slice(0, 350)
+    .map((file) => ({ file, text: stripLineComments(safeRead(file, 10000) ?? "") }));
+  const rnLikely = Boolean(deps["react-native"] || deps.expo || deps["expo-router"] || deps["react-native-web"]);
+  const expoSignals = [];
+  if (deps.expo) expoSignals.push({ type: "dependency", name: "expo", version: deps.expo });
+  if (deps["expo-router"]) expoSignals.push({ type: "dependency", name: "expo-router", version: deps["expo-router"] });
+  for (const candidate of ["app.json", "app.config.js", "app.config.ts", "app.config.mjs"]) {
+    if (fileSet.has(candidate)) expoSignals.push({ type: "file", path: candidate });
+  }
+  const navigationSignals = [
+    ...pickDeps(deps, [
+      "@react-navigation/native",
+      "@react-navigation/stack",
+      "@react-navigation/native-stack",
+      "@react-navigation/bottom-tabs",
+      "@react-navigation/drawer",
+      "expo-router",
+    ]).map((dep) => ({ type: "dependency", ...dep })),
+    ...["app", "src/navigation", "navigation", "src/routes", "routes"].filter(hasDir).map((dir) => ({ type: "directory", path: dir })),
+  ];
+  const componentDirCandidates = [
+    "components",
+    "src/components",
+    "app/components",
+    "src/ui",
+    "src/shared",
+    "src/common",
+    "src/design-system",
+    "packages/ui",
+  ].filter(hasDir);
+  const accessibilitySignals = sample
+    .filter(({ text }) => /accessibility(Label|Role|Hint|State|Value|Actions|LiveRegion|ViewIsModal)|importantForAccessibility|allowFontScaling|maxFontSizeMultiplier|numberOfLines/.test(text))
+    .slice(0, 75)
+    .map(({ file }) => rel(file));
+  const primitiveSignals = sample
+    .filter(({ text }) => /from\s+["']react-native["']|<(Pressable|TouchableOpacity|TouchableHighlight|TouchableWithoutFeedback|TextInput|FlatList|SectionList|Modal|Image|Text)\b/.test(text))
+    .slice(0, 75)
+    .map(({ file }) => rel(file));
+  const i18nSignals = [
+    ...pickDeps(deps, [
+      "i18next",
+      "react-i18next",
+      "react-intl",
+      "expo-localization",
+      "i18n-js",
+      "@lingui/react",
+      "@formatjs/intl",
+    ]).map((dep) => ({ type: "dependency", ...dep })),
+    ...["locales", "src/locales", "messages", "src/messages", "translations", "src/translations", "lang", "src/i18n"].filter(hasDir).map((dir) => ({ type: "directory", path: dir })),
+    ...[...fileSet]
+      .filter((name) => /(^|\/)i18n\.(js|ts|tsx|mjs|cjs)$/.test(name) || /(^|\/)translations\//.test(name))
+      .slice(0, 50)
+      .map((name) => ({ type: "file", path: name })),
+  ];
+  const a11yRelevantDependencies = pickDeps(deps, [
+    "react-native-gesture-handler",
+    "react-native-reanimated",
+    "react-native-screens",
+    "react-native-safe-area-context",
+    "react-native-webview",
+    "react-native-svg",
+    "react-native-vector-icons",
+    "@expo/vector-icons",
+    "@gorhom/bottom-sheet",
+    "react-native-modal",
+    "react-native-paper",
+    "native-base",
+    "tamagui",
+    "react-native-elements",
+    "react-native-maps",
+    "react-native-video",
+    "react-native-chart-kit",
+    "victory-native",
+    "react-native-calendars",
+    "@react-native-picker/picker",
+    "@react-native-community/slider",
+    "react-hook-form",
+    "formik",
+  ]);
+  return {
+    packageJson: pkg === null ? null : "package.json",
+    framework: rnLikely ? (deps.expo || deps["expo-router"] ? "expo-react-native" : "react-native") : null,
+    reactNativeVersion: deps["react-native"] ?? null,
+    expoSignals,
+    navigationSignals,
+    componentDirCandidates,
+    accessibilitySignals,
+    primitiveSignals,
+    i18nSignals,
+    a11yRelevantDependencies,
+    platformDirs: ["ios", "android"].filter(hasDir),
+    configFiles: [...fileSet]
+      .filter((name) => /^(metro|babel|app\.config|eas)\.|^app\.json$|^expo-env\.d\.ts$/.test(name))
+      .slice(0, 50),
+  };
+}
 function detectIos(files) {
   const swiftFiles = files.filter((file) => file.endsWith(".swift"));
   const swiftSample = swiftFiles
@@ -378,11 +479,28 @@ function detectAspNet(files) {
 const files = walk(root);
 const pkg = safeJson(path.join(root, "package.json"));
 const web = detectWeb(files, pkg);
+const reactNative = detectReactNative(files, pkg);
 const ios = detectIos(files);
 const android = detectAndroid(files);
 const aspNet = detectAspNet(files);
 const detectedPlatforms = [];
-if (web.framework !== null || pkg?.dependencies?.react || pkg?.devDependencies?.react) detectedPlatforms.push("web-react");
+const packageDeps = depsOf(pkg);
+const hasReactDependency = Boolean(packageDeps.react);
+const hasExplicitWebTarget =
+  web.framework !== null &&
+  (reactNative.framework === null ||
+    web.framework !== "react" ||
+    Boolean(
+      packageDeps["react-dom"] ||
+        packageDeps.next ||
+        packageDeps.vite ||
+        packageDeps["@remix-run/react"] ||
+        packageDeps.gatsby ||
+        packageDeps["react-scripts"] ||
+        packageDeps["react-native-web"],
+    ));
+if (reactNative.framework !== null) detectedPlatforms.push("mobile-react-native");
+if (hasExplicitWebTarget || (hasReactDependency && reactNative.framework === null)) detectedPlatforms.push("web-react");
 if (aspNet.framework !== null) {
   detectedPlatforms.push(
     aspNet.framework === "aspnet-webforms" || aspNet.framework === "aspnet-mixed"
@@ -401,8 +519,8 @@ const notes = [];
 if (files.length >= MAX_FILES) notes.push(`File scan capped at ${MAX_FILES} files.`);
 if (pkg === null && hasFile("package.json")) notes.push("package.json exists but could not be parsed as JSON.");
 if (detectedPlatforms.length === 0) notes.push("No supported platform signals detected.");
-if (detectedPlatforms.some((platform) => platform.startsWith("ios") || platform.startsWith("android"))) {
-  notes.push("iOS mapping is supported through mapper-ios-swift.md when SwiftUI/UIKit is in scope; Android remains signal-only until detailed references are added.");
+if (detectedPlatforms.some((platform) => platform.startsWith("ios") || platform === "mobile-react-native" || platform.startsWith("android"))) {
+  notes.push("React Native mapping is supported through mapper-react-native.md; iOS mapping is supported through mapper-ios-swift.md when SwiftUI/UIKit is in scope; native Android remains signal-only until detailed references are added.");
 }
 
 const result = {
@@ -411,6 +529,7 @@ const result = {
   detectedPlatforms,
   packageManagers: detectPackageManagers(files),
   web,
+  reactNative,
   ios,
   android,
   aspNet,

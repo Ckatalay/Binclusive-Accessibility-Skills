@@ -1,6 +1,6 @@
 # Binclusive Accessibility Skills
 
-Reusable Agent Skills for mapping, auditing, and fixing accessibility issues in React, Next.js, ASP.NET, ASPX/Web Forms, SwiftUI, and UIKit projects.
+Reusable Agent Skills for mapping, auditing, and fixing accessibility issues in React, Next.js, React Native, Expo, ASP.NET, ASPX/Web Forms, SwiftUI, and UIKit projects.
 
 This repository keeps one canonical skill source and uses small adapters for Codex, Claude Code, and GitHub Copilot.
 
@@ -21,10 +21,11 @@ Canonical skill files live in `skills/<skill-name>/SKILL.md`.
 ## Supported Audit Targets
 
 - React and Next.js web applications.
+- React Native and Expo mobile applications.
 - ASP.NET MVC/Razor, Razor Pages, and ASPX/Web Forms applications.
 - iOS apps built with SwiftUI, UIKit, or mixed SwiftUI/UIKit architecture.
 
-Android/Kotlin projects may be detected by the inspector as signals, but detailed Android mapping and audit references are not included yet.
+Native Android/Kotlin projects may be detected by the inspector as signals, but detailed native Android mapping and audit references are not included yet. React Native Android behavior is covered by the React Native/Expo references.
 
 ## Install
 

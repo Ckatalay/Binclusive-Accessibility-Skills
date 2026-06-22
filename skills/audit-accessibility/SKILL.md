@@ -1,11 +1,11 @@
 ---
 name: audit-accessibility
-description: Audit React, Next.js, ASP.NET, ASPX/Web Forms, SwiftUI, or UIKit accessibility from a prior Binclusive project map. Use when the user says /auditaccessibility, audit accessibility, run accessibility audit, accessibility test, iOS accessibility audit, SwiftUI accessibility audit, UIKit accessibility audit, "binclusive projemi test et", "erişilebilirlik testi yap", "erişilebilirlik todo çıkar", "accessibility todo çıkar", or wants an accessibility TODO report from mapped routes, views, screens, components, controls, or paths.
+description: Audit React, Next.js, React Native, Expo, ASP.NET, ASPX/Web Forms, SwiftUI, or UIKit accessibility from a prior Binclusive project map. Use when the user says /auditaccessibility, audit accessibility, run accessibility audit, accessibility test, iOS accessibility audit, SwiftUI accessibility audit, UIKit accessibility audit, React Native accessibility audit, Expo accessibility audit, "binclusive projemi test et", "erişilebilirlik testi yap", "erişilebilirlik todo çıkar", "accessibility todo çıkar", or wants an accessibility TODO report from mapped routes, views, screens, components, controls, or paths.
 ---
 
 # Audit Accessibility
 
-Audit a previously mapped React/Next.js, ASP.NET/ASPX, or iOS SwiftUI/UIKit scope and write an actionable accessibility TODO report. This skill observes and documents only. It never edits source code.
+Audit a previously mapped React/Next.js web, React Native/Expo, ASP.NET/ASPX, or iOS SwiftUI/UIKit scope and write an actionable accessibility TODO report. This skill observes and documents only. It never edits source code.
 
 ## Start Here
 
@@ -18,6 +18,9 @@ Audit a previously mapped React/Next.js, ASP.NET/ASPX, or iOS SwiftUI/UIKit scop
      - `references/auditor-web-a11y.md`
      - `references/react-nextjs.md`
      - `references/patterns/react-nextjs-patterns.md` when available
+   - For React Native/Expo, read:
+     - `references/react-native.md`
+     - `references/patterns/react-native-patterns.md` when available
    - For ASP.NET MVC/Razor or ASPX/Web Forms, read:
      - `references/auditor-web-a11y.md`
      - `references/aspnet-aspx.md`
@@ -25,7 +28,7 @@ Audit a previously mapped React/Next.js, ASP.NET/ASPX, or iOS SwiftUI/UIKit scop
    - For iOS SwiftUI/UIKit, read:
      - `references/ios-swift.md`
      - `references/patterns/ios-swift-patterns.md` when available
-6. For mixed-platform maps, keep findings grouped by platform/surface and do not apply web-only rules to native iOS UI or iOS-only rules to web UI.
+6. For mixed-platform maps, keep findings grouped by platform/surface and do not apply web-only rules to native/mobile UI or mobile-only rules to web UI.
 7. Audit only the scope listed in the map, unless the user explicitly expands scope.
 8. Write `Binclusive-auditing/accessibility-todo.md` and also archive a dated copy: `accessibility-todo_<YYYY-MM-DD>.md`.
 
@@ -66,7 +69,15 @@ For web scopes:
 3. Shared display components: Image, Icon, Avatar, Table, Chart, Skeleton, Loading, Badge.
 4. Page-level patterns: landmarks, headings, skip link, route focus, page title, language/locale, reduced motion, zoom/reflow.
 
-For iOS scopes:
+For React Native scopes:
+
+1. Inline interactive UI in screens, route files, custom headers, list items, forms, modals, and native-wrapper components.
+2. Shared interactive controls: Pressable/Button, Touchable, Link, TextInput, Select/Picker, Checkbox, Radio, Switch, Slider, Dialog/Modal, BottomSheet, Menu, Tabs, custom gesture targets.
+3. Shared display components: Text, Image/Icon, Avatar, List/FlatList/SectionList, Card/Row, Chart, Map, Skeleton, Loading, Badge, Toast/Banner, WebView, Media controls.
+4. Screen-level patterns: screen titles, focus/reading order, modal presentation/dismissal, errors, status updates, localization, font scaling, Reduce Motion, RTL, contrast, touch targets.
+5. Platform assistive technology behavior: VoiceOver/TalkBack, Switch Control, Voice Control, keyboard/accessibility focus, font scale/Dynamic Type, Button Shapes, Differentiate Without Color, Increase Contrast.
+
+For iOS SwiftUI/UIKit scopes:
 
 1. Inline interactive UI in SwiftUI views, UIKit controllers, cells, and storyboard/xib scenes.
 2. Shared interactive controls: Button, NavigationLink, TextField, Picker, Toggle, Slider, Stepper, Sheet/Dialog, Menu, Tab, custom gesture targets, custom UIControls.
@@ -79,7 +90,7 @@ For iOS scopes:
 - User-provided audit documents may be read as inspiration only; do not copy customer data into skill resources.
 - Do not modify source code.
 - Do not include accessible elements as findings.
-- Do not guess contrast, screen-reader/VoiceOver output, focus trap/focus order behavior, touch target size, Dynamic Type layout, or runtime state. Mark these `RUNTIME-CHECK`.
-- Prefer native HTML fixes for web and native SwiftUI/UIKit controls/APIs for iOS.
+- Do not guess contrast, screen-reader/VoiceOver/TalkBack output, focus trap/focus order behavior, touch target size, Dynamic Type/font-scale layout, or runtime state. Mark these `RUNTIME-CHECK`.
+- Prefer native HTML fixes for web, React Native primitives/accessibility props for React Native, and native SwiftUI/UIKit controls/APIs for iOS.
 - Do not claim compliance; report verified findings and residual risk only.
 - If the map has blind spots, carry them into the audit summary.
